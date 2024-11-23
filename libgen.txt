@@ -1,0 +1,731 @@
+
+def karatsuba(x, y):
+    if x < 10 or y < 10:
+        return x * y
+
+    n = max(len(str(x)), len(str(y)))
+    half = n // 2
+
+    high_x = x // 10**half
+    low_x = x % 10**half
+    high_y = y // 10**half
+    low_y = y % 10**half
+
+    z0 = karatsuba(low_x, low_y)
+    z1 = karatsuba((low_x + high_x), (low_y + high_y))
+    z2 = karatsuba(high_x, high_y)
+
+    return (z2 * 10**(2 * half)) + ((z1 - z2 - z0) * 10**half) + z0
+
+
+def square_large_number(n):
+    return karatsuba(n, n)
+
+large_number = int(input("Enter a 20-digit number to square: "))
+result = square_large_number(large_number)
+print(f"Square of {large_number} is: {result}")
+
+os2
+def schedule_jobs(tasks):
+    tasks.sort(key=lambda x: x[2], reverse=True)
+    max_deadline = max(task[1] for task in tasks)
+    result = [False] * max_deadline
+    job_sequence = ['-1'] * max_deadline
+    total_profit = 0
+
+    for task in tasks:
+        for j in range(min(max_deadline, task[1]) - 1, -1, -1):
+            if not result[j]:
+                result[j] = True
+                job_sequence[j] = task[0]
+                total_profit += task[2]
+                break
+
+    return job_sequence, total_profit
+
+tasks = []
+n = int(input("Enter the number of tasks: "))
+
+for _ in range(n):
+    task_name = input("Enter task name: ")
+    deadline = int(input("Enter deadline: "))
+    profit = int(input("Enter profit: "))
+    tasks.append([task_name, deadline, profit])
+
+scheduled_jobs, total_profit = schedule_jobs(tasks)
+
+print("Scheduled Jobs:", scheduled_jobs)
+print("Total Profit:", total_profit)
+
+os3
+def floyd_warshall(cost_matrix):
+    num_offices = len(cost_matrix)
+    # Initialize the distance matrix with infinity
+    dist = [[float('inf')] * num_offices for _ in range(num_offices)]
+
+    # Populate the initial distance matrix based on the input cost matrix
+    for i in range(num_offices):
+        for j in range(num_offices):
+            if i == j:
+                dist[i][j] = 0  # The cost to connect an office to itself is 0
+            elif cost_matrix[i][j] != 0:
+                dist[i][j] = cost_matrix[i][j]
+
+    # Floyd-Warshall Algorithm to find shortest paths
+    for k in range(num_offices):
+        for i in range(num_offices):
+            for j in range(num_offices):
+                dist[i][j] = min(dist[i][j], dist[i][k] + dist[k][j])
+
+    return dist
+
+if __name__ == "__main__":
+    num_offices = int(input("Enter the number of offices: "))
+    cost_matrix = []
+    print("Enter the cost matrix (enter 0 for no direct connection):")
+
+    # Input the cost matrix
+    for i in range(num_offices):
+        row = list(map(int, input(f"Enter costs for office {i + 1} (space-separated): ").split()))
+        cost_matrix.append(row)
+
+    # Get the result from Floyd-Warshall
+    result = floyd_warshall(cost_matrix)
+
+    # Print the minimum connection costs between all offices
+    print("Minimum connection costs between offices:")
+    for row in result:
+        print(row)
+os4
+import heapq
+
+def dijkstra(N, edges, K):
+    graph = [[] for _ in range(N + 1)]
+    for u, v, w in edges:
+        graph[u].append((v, w))
+        graph[v].append((u, w))
+
+    dist = [float('inf')] * (N + 1)
+    dist[K] = 0
+    priority_queue = [(0, K)]
+
+    while priority_queue:
+        current_dist, current_node = heapq.heappop(priority_queue)
+
+        if current_dist > dist[current_node]:
+            continue
+
+        for neighbor, weight in graph[current_node]:
+            distance = current_dist + weight
+            if distance < dist[neighbor]:
+                dist[neighbor] = distance
+                heapq.heappush(priority_queue, (distance, neighbor))
+
+    max_distance = 0
+    for d in dist[1:]:
+        if d == float('inf'):
+            return -1, dist[1:]
+        max_distance = max(max_distance, d)
+
+    return max_distance, dist[1:]
+
+if __name__ == "__main__":
+    try:
+        N = int(input("Enter the number of nodes: "))
+        M = int(input("Enter the number of edges: "))
+        edges = []
+        for _ in range(M):
+            u, v, w = map(int, input("Enter edge (u, v, w) where u and v are nodes and w is the time: ").split())
+            if 1 <= u <= N and 1 <= v <= N and w >= 0:
+                edges.append((u, v, w))
+            else:
+                print("Invalid edge input. Ensure 1 <= u, v <= N and w >= 0.")
+
+        K = int(input("Enter the starting node (K): "))
+        if K < 1 or K > N:
+            print("Invalid starting node. It should be between 1 and N.")
+        else:
+            result, distances = dijkstra(N, edges, K)
+            print("Maximum distance:", result)
+            print("Distances from node", K, ":", distances)
+    except ValueError:
+        print("Invalid input. Please enter integers only.")
+os5
+def is_valid_move(x, y, board, n):
+    return 0 <= x < n and 0 <= y < n and board[x][y] == -1
+
+def knight_tour(n, start_x, start_y):
+    board = [[-1 for _ in range(n)] for _ in range(n)]
+    moves_x = [2, 1, -1, -2, -2, -1, 1, 2]
+    moves_y = [1, 2, 2, 1, -1, -2, -2, -1]
+    board[start_x][start_y] = 0
+
+    if solve_knight_tour(start_x, start_y, 1, board, moves_x, moves_y, n):
+        print("Knight's Tour solution:")
+        for row in board:
+            print(row)
+    else:
+        print("No solution exists.")
+
+def solve_knight_tour(x, y, move_count, board, moves_x, moves_y, n):
+    if move_count == n * n:
+        return True
+
+    for i in range(8):
+        next_x = x + moves_x[i]
+        next_y = y + moves_y[i]
+        if is_valid_move(next_x, next_y, board, n):
+            board[next_x][next_y] = move_count
+            if solve_knight_tour(next_x, next_y, move_count + 1, board, moves_x, moves_y, n):
+                return True
+            board[next_x][next_y] = -1
+
+    return False
+
+try:
+    n = int(input("Enter the size of the chessboard (NxN): "))
+    if n < 1:
+        print("Please enter a positive integer greater than 0.")
+    else:
+        start_x = int(input(f"Enter the starting x-coordinate (0 to {n-1}): "))
+        start_y = int(input(f"Enter the starting y-coordinate (0 to {n-1}): "))
+        
+        if 0 <= start_x < n and 0 <= start_y < n:
+            knight_tour(n, start_x, start_y)
+        else:
+            print("Invalid starting position!")
+except ValueError:
+    print("Invalid input! Please enter a valid integer.")
+os6
+def branch_and_bound(cost, N):
+    min_cost = [float('inf')]
+    optimal_assignment = [-1] * N
+    assigned_clubs = [-1] * N
+    visited = [False] * N
+
+    def solve(level, current_cost):
+        if level == N:
+            if current_cost < min_cost[0]:
+                min_cost[0] = current_cost
+                # Copy the current assignment to optimal_assignment
+                optimal_assignment[:] = assigned_clubs[:]
+            return
+        for i in range(N):
+            if not visited[i]:
+                visited[i] = True
+                assigned_clubs[level] = i
+                temp_cost = current_cost + cost[level][i]
+                if temp_cost < min_cost[0]:
+                    solve(level + 1, temp_cost)
+                visited[i] = False
+                assigned_clubs[level] = -1
+
+    solve(0, 0)
+    return min_cost[0], optimal_assignment
+
+def get_user_input():
+    N = int(input("Enter the number of students/clubs: "))
+    cost = []
+    print("Enter the cost matrix:")
+    for i in range(N):
+        row = list(map(int, input().strip().split()))
+        cost.append(row)
+    return cost, N
+
+if __name__ == "__main__":
+    cost_matrix, N = get_user_input()
+    min_cost, optimal_assignment = branch_and_bound(cost_matrix, N)
+    print("The minimum assignment cost is:", min_cost)
+    print("Optimal assignment (Student to Club):", [x + 1 for x in optimal_assignment])  # Output club assignments as 1-indexed
+
+os6:
+def branch_and_bound(cost, N):
+    min_cost = [float('inf')]
+    optimal_assignment = [-1] * N
+    assigned_clubs = [-1] * N
+    visited = [False] * N
+
+    def solve(level, current_cost):
+        if level == N:
+            if current_cost < min_cost[0]:
+                min_cost[0] = current_cost
+                # Copy the current assignment to optimal_assignment
+                optimal_assignment[:] = assigned_clubs[:]
+            return
+        for i in range(N):
+            if not visited[i]:
+                visited[i] = True
+                assigned_clubs[level] = i
+                temp_cost = current_cost + cost[level][i]
+                if temp_cost < min_cost[0]:
+                    solve(level + 1, temp_cost)
+                visited[i] = False
+                assigned_clubs[level] = -1
+
+    solve(0, 0)
+    return min_cost[0], optimal_assignment
+
+def get_user_input():
+    N = int(input("Enter the number of students/clubs: "))
+    cost = []
+    print("Enter the cost matrix:")
+    for i in range(N):
+        row = list(map(int, input().strip().split()))
+        cost.append(row)
+    return cost, N
+
+if __name__ == "__main__":
+    cost_matrix, N = get_user_input()
+    min_cost, optimal_assignment = branch_and_bound(cost_matrix, N)
+    print("The minimum assignment cost is:", min_cost)
+    print("Optimal assignment (Student to Club):", [x + 1 for x in optimal_assignment])  # Output club assignments as 1-indexed
+
+java
+
+
+1 square
+import java.util.*;
+import java.math.BigInteger;
+
+public class Square {
+
+    static BigInteger karatsuba(BigInteger num1, BigInteger num2){
+
+        // Base case: when the numbers are too small, directly multiply them
+        if(num1.compareTo(BigInteger.TEN) < 0 || num2.compareTo(BigInteger.TEN) < 0){
+            return num1.multiply(num2);
+        }
+
+        int half = num1.toString().length() / 2;
+        BigInteger tenPowHalf = BigInteger.TEN.pow(half);
+
+        BigInteger a = num1.divide(tenPowHalf);
+        BigInteger b = num1.mod(tenPowHalf);
+
+        BigInteger c = num2.divide(tenPowHalf);
+        BigInteger d = num2.mod(tenPowHalf);
+
+        BigInteger z0 = karatsuba(b, d); // lower part
+        BigInteger z2 = karatsuba(a, c); // upper part
+        BigInteger z1 = karatsuba(a.add(b), c.add(d)).subtract(z2).subtract(z0); // middle part
+
+        BigInteger result = z2.multiply(BigInteger.TEN.pow(2 * half))
+                             .add(z1.multiply(BigInteger.TEN.pow(half)))
+                             .add(z0);
+        return result;
+    }
+
+    public static void main(String args[]){
+        Scanner sc = new Scanner(System.in);
+
+        System.out.print("Enter a large Number: ");
+        BigInteger num = sc.nextBigInteger();
+        
+        System.out.println("\nThe square of the given number is:\n" + karatsuba(num, num));
+
+        sc.close();
+    }
+}
+
+2 job sheduling
+
+import java.util.*;
+
+public class JobScheduling {
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        
+        System.out.print("Enter the no of jobs:");
+        int n = sc.nextInt();
+        
+        int [][] task = new int[n][2];
+
+        int maxDeadline = -1;
+
+        for(int i = 0 ; i < n ; i++){
+            System.out.print("Enter deadline (d" + i +"): " );
+            int deadline = sc.nextInt();
+
+            System.out.print("Enter profit (p" + i +"): " );
+            int profit = sc.nextInt();
+
+            System.out.println(" ");
+            if(deadline > maxDeadline){
+                maxDeadline = deadline;
+            }
+
+            task[i][0] = profit;
+            task[i][1] = deadline;
+        }
+
+        int [] schedule = new int [maxDeadline + 1];
+
+        Arrays.sort(task, (a,b) -> Integer.compare(b[0], a[0]));
+
+        for(int i = 0; i < n; i++ ){
+            int profit = task[i][0];
+            int deadline = task[i][1];
+
+            if (schedule[deadline] == 0) {
+                schedule[deadline] = profit;
+            }else{
+                for(int j = maxDeadline - 1; j >= 1; j--){
+                    if (schedule[j] == 0) {
+                        schedule[j] = profit;
+                        break;
+                    }
+                }
+            }
+        }
+
+        int result = 0;
+        for(int i = 1 ; i < maxDeadline + 1 ; i++){ 
+            System.out.println("Slot "+ i + " deadline "+ schedule[i]);
+            result += schedule[i];
+        }
+
+        System.out.println("The maximum Profit is: " + result);
+
+        sc.close();
+    }
+    
+}
+
+3 floyad 
+import java.util.*;
+
+public class FloydWarshall {
+    public static void main(String args[]){
+        Scanner sc = new Scanner(System.in);
+        final int INF = (int) 1e9;
+
+        System.out.print("Enter No. of Vertex: ");
+        int V = sc.nextInt();
+
+        int [][] matrix = new int [V + 1] [ V + 1];
+
+        //intializing the matrix
+        for(int i = 1; i <= V; i++){
+            for(int j = 1; j <= V; j++ ){
+                if (i == j) {
+                    matrix[i][j] = 0;
+                }
+                else{
+                    matrix[i][j] = INF;
+                }
+            }
+            
+        }
+
+        System.out.print("Enter No. of Edges: ");
+        int E = sc.nextInt();
+
+
+        System.out.println("Enter the Edges(source, destination, weight)'u v w'");
+
+        for(int i = 0 ;  i < E ; i++){
+            int u = sc.nextInt();
+            int v = sc.nextInt();
+            int w = sc.nextInt();
+
+            matrix[u][v] = w;
+        }
+
+        //floyWarshall algorithm
+        for(int k = 1; k <= V ; k++){
+            for(int i = 1; i <= V ; i++){
+                for(int j = 1; j <= V ; j++){
+                    if (matrix[i][k] != INF && matrix[k][j] != INF) {
+                        matrix[i][j] = Math.min(matrix[i][j], matrix[i][k] + matrix[k][j]);
+                    }
+                }
+            }
+
+        }
+
+        for(int i = 1; i <= V; i++){
+            for(int j = 1; j <= V; j++){
+                if (matrix[i][j] == INF) {
+                    System.out.print( "-1 ");
+                }
+                else{
+                    System.out.print(matrix[i][j] + "   ");
+                }
+            }
+            System.out.println();
+        }
+        sc.close();
+    }
+}
+
+4 dijkstra
+import java.util.*;
+
+public class Dijkstra {
+    static int V;
+
+    // Find the node with the minimum distance that has not been included in the shortest path tree
+    int minDist(int dist[], Boolean boolset[]) {
+        int min = Integer.MAX_VALUE, min_value = -1;
+        for (int i = 0; i < V; i++) {
+            if (!boolset[i] && dist[i] <= min) {
+                min = dist[i];
+                min_value = i;
+            }
+        }
+        return min_value;
+    }
+    
+    // Print the shortest distances from the source node
+
+    void print(int dist[]) {
+        System.out.println("Vertex \t Distance from Source");
+        for (int i = 0; i < V; i++) {
+            System.out.println(i + " \t " + dist[i]);
+        }
+    }
+
+    // Dijkstra's Algorithm to find the shortest paths from the source node
+    void dijkstra(int[][] graph, int src) {
+        int dist[] = new int[V];
+        Boolean boolset[] = new Boolean[V];
+
+        //Initialize distances and the boolean set array
+        for (int i = 0; i < V; i++) {
+            dist[i] = Integer.MAX_VALUE;
+            boolset[i] = false;
+        }
+
+        dist[src] = 0;
+
+        //Dijkstra's main loop
+        for (int i = 0; i < V; i++) {
+            int u = minDist(dist, boolset);
+            boolset[u] = true;
+
+            for (int v = 0; v < V; v++) {
+                if (!boolset[v] && graph[u][v] != 0 && dist[u] != Integer.MAX_VALUE && dist[u] + graph[u][v] < dist[v]) {
+                    dist[v] = dist[u] + graph[u][v];
+                }
+            }
+        }
+
+        print(dist);
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+
+        System.out.println("Enter the number of vertices in the graph:");
+        V = sc.nextInt(); // Let the user define the size of the graph
+
+        int graph[][] = new int[V][V];
+
+        System.out.println("Enter the adjacency matrix for the graph (use 0 for no edge):");
+        for (int i = 0; i < V; i++) {
+            for (int j = 0; j < V; j++) {
+                graph[i][j] = sc.nextInt();
+            }
+        }
+
+        Dijkstra t = new Dijkstra();
+
+        System.out.println("Enter the starting node:");
+        int startNode = sc.nextInt();
+
+        t.dijkstra(graph, startNode);
+
+    }
+}
+
+5 knight tour
+import java.util.*;;
+
+public class KnightTour {
+
+    static int N;
+
+    static boolean isSafe(int x, int y, int[][] solution){
+        if (x >= 0 && x < N && y >= 0 && y < N && solution[x][y] == -1) {
+            return true;
+        }
+        return false;
+    }
+
+    static void print(int[][] sol) {
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                System.out.print(sol[i][j] + " ");
+            }
+            System.out.println();
+        }
+    }
+
+    static boolean solveKt(int x, int y){
+        int[][] solution = new int[N][N];
+
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                solution[i][j] = -1;
+            }
+        }
+
+
+        int xMove [] = {2, 1 ,-1 ,-2 , -2, -1, 1, 2};
+        int yMove [] = {1, 2, 2, 1, -1, -2, -2, -1};
+
+         // Mark the starting position as the first move
+         solution[x][y] = 0;
+
+        int movei = 1; 
+
+        if (!solvekTuntil(x, y, solution, movei, xMove, yMove)) {
+            System.out.println("No solution exists for the given board size and starting point.");
+            return false;
+        }
+        else{
+            print(solution);
+        }
+        return true;
+    }
+
+    static boolean solvekTuntil(int x, int y,int[][] solution,  int movei, int[]xMove, int[]yMove){
+
+        if (movei == N*N) {
+            return true;
+        }
+
+        for(int i = 0; i < 8; i++){
+            int next_x = x + xMove[i];
+            int next_y = y + yMove[i];
+
+            if (isSafe(next_x, next_y, solution)) {
+                solution[next_x][next_y] = movei;
+                if (solvekTuntil(next_x, next_y, solution, movei + 1, xMove, yMove)) {
+                    return true;
+                }
+                else{
+                    solution[next_x][next_y] = -1;
+                }
+
+            }  
+        }
+        return false;
+    }
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        
+        System.out.print("Enter the size of chessBoard: ");
+        N = sc.nextInt();
+
+        System.out.print("Enter the starting point(x,y): ");
+        int x = sc.nextInt();
+        int y = sc.nextInt();
+
+
+        solveKt(x,y);
+
+        sc.close();
+    }
+    
+}
+
+6 club ClubAssignment
+import java.util.*;
+
+class Node {
+    Node parent;
+    int pathCost;
+    int cost;
+    int studentID;
+    int clubID;
+    boolean[] assigned;
+
+    public Node(int N) {
+        assigned = new boolean[N];
+    }
+}
+
+public class ClubAssignment {
+    static int N; 
+
+    static Node newNode(int studentID, int clubID, boolean[] assigned, Node parent) {
+        Node node = new Node(N);
+        for (int i = 0; i < N; i++) {
+            node.assigned[i] = assigned[i];
+        }
+        if (clubID != -1) {
+            node.assigned[clubID] = true;
+        }
+        node.parent = parent;
+        node.studentID = studentID;
+        node.clubID = clubID;
+        return node;
+    }
+
+    static int calculateCost(int x, int y, int[][] costMatrix, boolean[] assigned) {
+        int cost = 0;
+        boolean[] available = new boolean[N];
+        Arrays.fill(available, true);
+        for (int i = x + 1; i < N; i++) {
+            int min = Integer.MAX_VALUE, minIndex = -1;
+            for (int j = 0; j < N; j++) {
+                if (available[j] && !assigned[j] && costMatrix[i][j] < min) {
+                    min = costMatrix[i][j];
+                    minIndex = j;
+                }
+            }
+            available[minIndex] = false;
+            cost += min;
+        }
+        return cost;
+    }
+
+    static void printAssignments(Node min) {
+        if (min.parent == null) return;
+        printAssignments(min.parent);
+        System.out.println("Assigned Student " + (char) (min.studentID + 'A') + " to club " + min.clubID);
+    }
+
+    static int findMinCost(int[][] costMatrix) {
+        PriorityQueue<Node> pq = new PriorityQueue<>(Comparator.comparingInt(node -> node.cost));
+        boolean[] assigned = new boolean[N];
+        Node root = newNode(-1, -1, assigned, null);
+        root.pathCost = root.cost = 0;
+        pq.add(root);
+        while (!pq.isEmpty()) {
+            Node min = pq.poll();
+            int i = min.studentID + 1;
+            if (i == N) {
+                printAssignments(min);
+                return min.cost;
+            }
+            for (int j = 0; j < N; j++) {
+                if (!min.assigned[j]) {
+                    Node child = newNode(i, j, min.assigned, min);
+                    child.pathCost = min.pathCost + costMatrix[i][j];
+                    child.cost = child.pathCost + calculateCost(i, j, costMatrix, child.assigned);
+                    pq.add(child);
+                }
+            }
+        }
+        return 0;
+    }
+
+    public static void main(String[] args) {
+        Scanner sc = new Scanner(System.in);
+        System.out.println("Enter the size of the cost matrix (N): ");
+        N = sc.nextInt();
+
+        int[][] costMatrix = new int[N][N];
+        System.out.println("Enter the cost matrix: ");
+        for (int i = 0; i < N; i++) {
+            for (int j = 0; j < N; j++) {
+                costMatrix[i][j] = sc.nextInt();
+            }
+        }
+
+        System.out.println("\nOptimal Cost is " + findMinCost(costMatrix));
+        sc.close();
+    }
+}
